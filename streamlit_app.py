@@ -91,7 +91,7 @@ Guide's Answer:
 """
 
                 # --- C. CALL MODEL ---
-                client = InferenceClient( "mistralai/Mistral-7B-Instruct-v0.3", 
+                client = InferenceClient( "mistralai/Mistral-7B-Instruct-v0.2", 
                     token=hf_token
                 )
 
@@ -117,4 +117,5 @@ Guide's Answer:
 
             except Exception as e:
                 st.error(f"Error: {e}")
+
 
