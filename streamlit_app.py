@@ -34,7 +34,7 @@ with st.sidebar:
 # 3. MAIN APP LOGIC
 # ==========================================
 st.title("🌍 AI Tour Guide")
-st.caption(f"Welcome! I'am your fieandly naighbourhood guide | Focus: **{country}**")
+st.caption(f"Hello there 👋 | Focus: **{country}**")
 
 # Initialize History
 if "messages" not in st.session_state:
