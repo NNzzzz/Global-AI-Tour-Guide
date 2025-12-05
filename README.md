@@ -1,8 +1,3 @@
-# Global-AI-Tour-Guide
-A smart travel companion application that acts as a knowledgeable local guide for any country on Earth. Unlike standard chatbots, this system uses RAG (Retrieval-Augmented Generation) to pull live context from Wikipedia, ensuring accurate and hallucination-free responses about history, culture, and logistics.
-
-
-
 # 🌍 Worldwide AI Tour Guide
 
 > A smart, context-aware travel assistant powered by RAG (Retrieval-Augmented Generation) and Mistral-7B.
@@ -68,5 +63,4 @@ If you want to run this locally instead of on the cloud:
 My-AI-Tour-Guide/
 ├── streamlit_app.py       # Main application code (Serverless RAG)
 ├── requirements.txt       # List of Python dependencies
-├── README.md              # Project documentation
-└── research_notebooks/    # (Optional) Experimental notebooks from Kaggle
+└── README.md              # Project documentation
