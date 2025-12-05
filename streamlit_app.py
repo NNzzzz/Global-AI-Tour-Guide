@@ -65,7 +65,7 @@ if prompt := st.chat_input("Ask a question..."):
         with st.spinner("Searching Global Database..."):
             try:
                 # --- A. SETUP MODEL ---
-                repo_id = "mistralai/Mistral-7B-Instruct-v0.3"
+                repo_id = "mistralai/Mistral-7B-Instruct-v0.2"
                 llm = HuggingFaceEndpoint(
                     repo_id=repo_id,
                     max_new_tokens=512,
@@ -114,4 +114,5 @@ if prompt := st.chat_input("Ask a question..."):
                 st.session_state.messages.append({"role": "assistant", "content": response})
 
             except Exception as e:
+
                 st.error(f"Error: {e}")
