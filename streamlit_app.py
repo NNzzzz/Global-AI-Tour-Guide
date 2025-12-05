@@ -26,7 +26,6 @@ with st.sidebar:
         import pycountry
         countries = sorted([c.name for c in pycountry.countries])
     except ImportError:
-        # Fallback if pycountry isn't installed
         countries = ["Worldwide", "USA", "France", "Egypt", "Japan", "Italy"]
         
     country = st.selectbox("Destination:", ["Worldwide"] + countries)
@@ -60,28 +59,21 @@ if prompt := st.chat_input("Ask a question..."):
 
     # 3. Generate Answer
     with st.chat_message("assistant"):
-        with st.spinner(f"Searching Wikipedia for info about {country}..."):
+        with st.spinner(f"Searching info about {country}..."):
             try:
                 # --- A. RETRIEVE CONTEXT (Wikipedia) ---
-                # top_k=5 to get more context
                 retriever = WikipediaRetriever(top_k_results=5, doc_content_chars_max=2000)
-                
-                # specific search query to help Wikipedia find the right country context
                 search_query = f"{prompt} {country}" 
-                
                 docs = retriever.invoke(search_query)
                 context_text = "\n\n".join([doc.page_content for doc in docs])
 
-                # DEBUG: Show what Wikipedia found (Click to expand)
-                with st.expander("🕵️ View Retrieved Source Text"):
-                    st.write(context_text)
+                # (Debug View REMOVED as requested)
 
-                # --- B. PREPARE PROMPT (Your Custom "Warm" Prompt) ---
+                # --- B. PREPARE PROMPT ---
                 system_prompt = f"""
-You are a warm, enthusiastic, and knowledgeable tour guide specializing in {country}.
-Your goal is to help the traveler have the best experience possible, whether they ask about history, logistics, culture, or hidden gems.
+You are a warm, enthusiastic tour guide specializing in {country}.
 
-Here is some information retrieved from the guidebook (Wikipedia):
+Here is information from the guidebook:
 Context:
 {context_text}
 
@@ -90,10 +82,10 @@ User's Question: {prompt}
 
 Instructions:
 1. Answer the question specifically for {country}.
-2. Use a friendly, conversational tone (like a helpful local friend).
-3. If the retrieved context contains the answer, summarize it clearly.
-4. If the context is empty or irrelevant, use your general knowledge to help, but keep it grounded in reality.
-5. Avoid technical jargon; speak like a human guide.
+2. KEEP IT SHORT. Do not ramble. 
+3. Use a friendly, conversational tone (like a helpful local friend).
+4. No technical jargon. Speak simply.
+5. If the context contains the answer, summarize it. If not, use general knowledge but stay realistic.
 
 Guide's Answer:
 """
@@ -104,13 +96,12 @@ Guide's Answer:
                     token=hf_token
                 )
 
-                # Send messages
                 response_stream = client.chat_completion(
                     messages=[
                         {"role": "user", "content": system_prompt} 
                     ],
                     max_tokens=512,
-                    temperature=0.5, # 0.3 allows for a friendly tone without being too random
+                    temperature=0.5, # UPDATED: Set to 0.5
                     stream=False
                 )
 
