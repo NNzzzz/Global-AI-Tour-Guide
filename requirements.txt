@@ -1,0 +1,6 @@
+streamlit
+langchain-huggingface
+langchain-community
+langchain-core
+wikipedia
+pycountry
