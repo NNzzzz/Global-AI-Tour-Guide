@@ -1,9 +1,6 @@
 import streamlit as st
-from langchain_huggingface import HuggingFaceEndpoint
-from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+from huggingface_hub import InferenceClient
 from langchain_community.retrievers import WikipediaRetriever
-from operator import itemgetter
 
 # ==========================================
 # 1. PAGE CONFIG
@@ -64,56 +61,50 @@ if prompt := st.chat_input("Ask a question..."):
     with st.chat_message("assistant"):
         with st.spinner("Searching Global Database..."):
             try:
-                # --- A. SETUP MODEL ---
-                repo_id = "HuggingFaceH4/zephyr-7b-beta"
-                llm = HuggingFaceEndpoint(
-                    repo_id=repo_id,
-                    max_new_tokens=512,
-                    temperature=0.7,
-                    huggingfacehub_api_token=hf_token
-                )
-
-                # --- B. SETUP RETRIEVER ---
+                # --- A. RETRIEVE CONTEXT (Wikipedia) ---
+                # We use LangChain just for the Wikipedia search (it's good at that)
                 retriever = WikipediaRetriever(top_k_results=3, doc_content_chars_max=2000)
-
-                # --- C. SETUP TEMPLATE ---
-                template = """
-                You are a friendly tour guide specializing in {country}.
-                Context:
-                {context}
                 
-                Question: {question}
-                
-                Answer:
-                """
-                prompt_template = PromptTemplate.from_template(template)
-
-                # --- D. BUILD CHAIN ---
-                chain = (
-                    {
-                        "context": itemgetter("question") | retriever,
-                        "question": itemgetter("question"),
-                        "country": itemgetter("country")
-                    }
-                    | prompt_template
-                    | llm
-                    | StrOutputParser()
-                )
-
-                # --- E. RUN ---
+                # Construct query
                 search_query = f"{prompt} in {country}" if country != "Worldwide" else prompt
                 
-                response = chain.invoke({
-                    "question": search_query, 
-                    "country": country
-                })
-                
-                st.markdown(response)
+                # Fetch docs
+                docs = retriever.invoke(search_query)
+                context_text = "\n\n".join([doc.page_content for doc in docs])
 
-                # ✅✅✅ THIS IS THE LINE YOU WERE MISSING ✅✅✅
-                st.session_state.messages.append({"role": "assistant", "content": response})
+                # --- B. PREPARE PROMPT ---
+                # We build the chat message manually
+                system_prompt = f"""You are a friendly, enthusiastic tour guide specializing in {country}.
+                Use the following context to answer the user's question. 
+                If the answer isn't in the context, use your general knowledge.
+                
+                Context:
+                {context_text}"""
+
+                # --- C. CALL MODEL (Using InferenceClient) ---
+                # This uses the "Chat" API which is supported on Free Tier!
+                client = InferenceClient(
+                    "mistralai/Mistral-7B-Instruct-v0.3", 
+                    token=hf_token
+                )
+
+                # Send messages
+                response_stream = client.chat_completion(
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=512,
+                    temperature=0.7,
+                    stream=False
+                )
+
+                # Extract Answer
+                answer = response_stream.choices[0].message.content
+                
+                # Display & Save
+                st.markdown(answer)
+                st.session_state.messages.append({"role": "assistant", "content": answer})
 
             except Exception as e:
-
                 st.error(f"Error: {e}")
-
