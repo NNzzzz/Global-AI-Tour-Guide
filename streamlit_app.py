@@ -11,7 +11,7 @@ st.set_page_config(page_title="Global Guide", page_icon="🌍")
 # 2. SIDEBAR & SETUP
 # ==========================================
 with st.sidebar:
-    st.header("⚙️ Configuration")
+    #st.header("⚙️ Configuration")
     
     # Securely get token
     if "HF_TOKEN" in st.secrets:
@@ -120,6 +120,7 @@ Guide's Answer:
 
             except Exception as e:
                 st.error(f"Error: {e}")
+
 
 
 
