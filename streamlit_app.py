@@ -91,8 +91,7 @@ Guide's Answer:
 """
 
                 # --- C. CALL MODEL ---
-                client = InferenceClient(
-                    "HuggingFaceH4/zephyr-7b-beta", 
+                client = InferenceClient( "mistralai/Mistral-7B-Instruct-v0.3", 
                     token=hf_token
                 )
 
@@ -107,10 +106,15 @@ Guide's Answer:
 
                 # Extract Answer
                 answer = response_stream.choices[0].message.content
+                # --- CLEANUP FIX ---
+                # This removes the glitched tags if they appear
+                answer = answer.replace("[/USER]", "").replace("[/ASS]", "").strip()
                 
                 # Display & Save
                 st.markdown(answer)
                 st.session_state.messages.append({"role": "assistant", "content": answer})
+             
 
             except Exception as e:
                 st.error(f"Error: {e}")
+
