@@ -25,7 +25,8 @@ with st.sidebar:
     try:
         import pycountry
         countries = sorted([c.name for c in pycountry.countries])
-    except:
+    except ImportError:
+        # Fallback if pycountry isn't installed
         countries = ["Worldwide", "USA", "France", "Egypt", "Japan", "Italy"]
         
     country = st.selectbox("Destination:", ["Worldwide"] + countries)
@@ -59,28 +60,45 @@ if prompt := st.chat_input("Ask a question..."):
 
     # 3. Generate Answer
     with st.chat_message("assistant"):
-        with st.spinner("Searching Global Database..."):
+        with st.spinner(f"Searching Wikipedia for info about {country}..."):
             try:
                 # --- A. RETRIEVE CONTEXT (Wikipedia) ---
-                retriever = WikipediaRetriever(top_k_results=3, doc_content_chars_max=2000)
+                # top_k=5 to get more context
+                retriever = WikipediaRetriever(top_k_results=5, doc_content_chars_max=2000)
                 
-                # Construct query
-                search_query = f"{prompt} in {country}" if country != "Worldwide" else prompt
+                # specific search query to help Wikipedia find the right country context
+                search_query = f"{prompt} {country}" 
                 
-                # Fetch docs
                 docs = retriever.invoke(search_query)
                 context_text = "\n\n".join([doc.page_content for doc in docs])
 
-                # --- B. PREPARE PROMPT ---
-                system_prompt = f"""You are a friendly, enthusiastic tour guide specializing in {country}.
-                Use the following context to answer the user's question. 
-                If the answer isn't in the context, use your general knowledge.
-                
-                Context:
-                {context_text}"""
+                # DEBUG: Show what Wikipedia found (Click to expand)
+                with st.expander("🕵️ View Retrieved Source Text"):
+                    st.write(context_text)
 
-                # --- C. CALL MODEL (Switched to Zephyr) ---
-                # "HuggingFaceH4/zephyr-7b-beta" is very stable on the free tier
+                # --- B. PREPARE PROMPT (Your Custom "Warm" Prompt) ---
+                system_prompt = f"""
+You are a warm, enthusiastic, and knowledgeable tour guide specializing in {country}.
+Your goal is to help the traveler have the best experience possible, whether they ask about history, logistics, culture, or hidden gems.
+
+Here is some information retrieved from the guidebook (Wikipedia):
+Context:
+{context_text}
+
+---
+User's Question: {prompt}
+
+Instructions:
+1. Answer the question specifically for {country}.
+2. Use a friendly, conversational tone (like a helpful local friend).
+3. If the retrieved context contains the answer, summarize it clearly.
+4. If the context is empty or irrelevant, use your general knowledge to help, but keep it grounded in reality.
+5. Avoid technical jargon; speak like a human guide.
+
+Guide's Answer:
+"""
+
+                # --- C. CALL MODEL ---
                 client = InferenceClient(
                     "HuggingFaceH4/zephyr-7b-beta", 
                     token=hf_token
@@ -89,11 +107,10 @@ if prompt := st.chat_input("Ask a question..."):
                 # Send messages
                 response_stream = client.chat_completion(
                     messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
+                        {"role": "user", "content": system_prompt} 
                     ],
                     max_tokens=512,
-                    temperature=0.7,
+                    temperature=0.5, # 0.3 allows for a friendly tone without being too random
                     stream=False
                 )
 
