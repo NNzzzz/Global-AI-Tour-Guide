@@ -34,7 +34,7 @@ with st.sidebar:
 # 3. MAIN APP LOGIC
 # ==========================================
 st.title("🌍 AI Tour Guide")
-st.caption(f"Running on Streamlit Cloud | Focus: **{country}**")
+st.caption(f"Welcome! I'am your fieandly naighbourhood guide | Focus: **{country}**")
 
 # Initialize History
 if "messages" not in st.session_state:
@@ -117,5 +117,6 @@ Guide's Answer:
 
             except Exception as e:
                 st.error(f"Error: {e}")
+
 
 
