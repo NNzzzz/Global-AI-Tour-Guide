@@ -20,7 +20,7 @@ The system is built on **Streamlit** for the frontend and uses **Hugging Face In
 ## 🛠️ Tech Stack
 * **Frontend:** Streamlit
 * **Orchestration:** LangChain
-* **LLM:** Mistral-7B-Instruct-v0.3 (via Hugging Face API)
+* **LLM:** Mistral-7B-Instruct-v0.2 (via Hugging Face API)
 * **Retriever:** Wikipedia API
 * **Utilities:** Pycountry
 
