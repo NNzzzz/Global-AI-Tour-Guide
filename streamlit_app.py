@@ -62,7 +62,6 @@ if prompt := st.chat_input("Ask a question..."):
         with st.spinner("Searching Global Database..."):
             try:
                 # --- A. RETRIEVE CONTEXT (Wikipedia) ---
-                # We use LangChain just for the Wikipedia search (it's good at that)
                 retriever = WikipediaRetriever(top_k_results=3, doc_content_chars_max=2000)
                 
                 # Construct query
@@ -73,7 +72,6 @@ if prompt := st.chat_input("Ask a question..."):
                 context_text = "\n\n".join([doc.page_content for doc in docs])
 
                 # --- B. PREPARE PROMPT ---
-                # We build the chat message manually
                 system_prompt = f"""You are a friendly, enthusiastic tour guide specializing in {country}.
                 Use the following context to answer the user's question. 
                 If the answer isn't in the context, use your general knowledge.
@@ -81,10 +79,10 @@ if prompt := st.chat_input("Ask a question..."):
                 Context:
                 {context_text}"""
 
-                # --- C. CALL MODEL (Using InferenceClient) ---
-                # This uses the "Chat" API which is supported on Free Tier!
+                # --- C. CALL MODEL (Switched to Zephyr) ---
+                # "HuggingFaceH4/zephyr-7b-beta" is very stable on the free tier
                 client = InferenceClient(
-                    "mistralai/Mistral-7B-Instruct-v0.3", 
+                    "HuggingFaceH4/zephyr-7b-beta", 
                     token=hf_token
                 )
 
